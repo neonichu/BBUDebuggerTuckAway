@@ -1,0 +1,14 @@
+PODS:
+  - NSObject+YOLO (0.1)
+
+DEPENDENCIES:
+  - NSObject+YOLO (from `https://github.com/neonichu/NSObject-YOLO.git`)
+
+EXTERNAL SOURCES:
+  NSObject+YOLO:
+    :git: https://github.com/neonichu/NSObject-YOLO.git
+
+SPEC CHECKSUMS:
+  NSObject+YOLO: 28730622cce263d45baadb3712f52d1fe4b47d74
+
+COCOAPODS: 0.29.0
