@@ -6,10 +6,10 @@
 //    Copyright (c) 2014 Boris Bügling. All rights reserved.
 //
 
-#import <NSObject+YOLO/NSObject+YOLO.h>
 #import <objc/runtime.h>
 
 #import "BBUDebuggerTuckAway.h"
+#import "NSObject+YOLO.h"
 
 static BBUDebuggerTuckAway *sharedPlugin;
 
