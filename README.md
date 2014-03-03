@@ -10,6 +10,6 @@ Either
 
 or
 
-- Install it via [Alcatraz](http://mneorr.github.io/Alcatraz/)
+- Install it via [Alcatraz](http://alcatraz.io/)
 
 In any case, relaunch Xcode to load it.
