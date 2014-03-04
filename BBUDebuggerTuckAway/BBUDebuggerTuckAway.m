@@ -11,6 +11,8 @@
 #import "BBUDebuggerTuckAway.h"
 #import "NSObject+YOLO.h"
 
+#define kBBUDebuggerTuckAwayEnabledStatus @"kBBUDebuggerTuckAwayEnabledStatus"
+
 static BBUDebuggerTuckAway *sharedPlugin;
 
 @interface NSObject (ShutUpWarnings)
@@ -19,6 +21,12 @@ static BBUDebuggerTuckAway *sharedPlugin;
 -(BOOL)showDebuggerArea;
 -(void)toggleDebuggerVisibility:(id)arg;
 -(NSArray*)workspaceWindowControllers;
+
+@end
+
+@interface BBUDebuggerTuckAway ()
+
+@property (nonatomic, strong) NSMenuItem *toggleMenuItem;
 
 @end
 
@@ -42,8 +50,31 @@ static BBUDebuggerTuckAway *sharedPlugin;
 {
     if (self = [super init]) {
         [self performSelector:@selector(swizzleDidChangeTextInSourceTextView) withObject:nil afterDelay:5.0];
+        
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kBBUDebuggerTuckAwayEnabledStatus] == nil) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kBBUDebuggerTuckAwayEnabledStatus];
+        }
+        
+        [self initMenu];
     }
     return self;
+}
+
+- (void)initMenu
+{
+    NSMenuItem *viewMenuItem = [[NSApp mainMenu] itemWithTitle:@"View"];
+    
+    if (viewMenuItem) {
+        [[viewMenuItem submenu] addItem:[NSMenuItem separatorItem]];
+        
+       _toggleMenuItem = [[NSMenuItem alloc] initWithTitle:[self titleForMenuItem]
+                                                    action:@selector(toggleEnabledStatus)
+                                             keyEquivalent:@""];
+        
+        [_toggleMenuItem setTarget:self];
+        [[viewMenuItem submenu] addItem:_toggleMenuItem];
+    }
+
 }
 
 - (void)swizzleDidChangeTextInSourceTextView
@@ -60,12 +91,16 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 - (void)toggleDebuggersIfNeeded
 {
-    for (NSWindowController *workspaceWindowController in [objc_getClass("IDEWorkspaceWindowController")
-                                                           workspaceWindowControllers])
-    {
-        id editorArea = [workspaceWindowController editorArea];
-        if ([editorArea showDebuggerArea]) {
-            [editorArea toggleDebuggerVisibility:nil];
+    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
+
+    if (status) {
+        for (NSWindowController *workspaceWindowController in [objc_getClass("IDEWorkspaceWindowController")
+                                                               workspaceWindowControllers])
+        {
+            id editorArea = [workspaceWindowController editorArea];
+            if ([editorArea showDebuggerArea]) {
+                [editorArea toggleDebuggerVisibility:nil];
+            }
         }
     }
 }
@@ -73,6 +108,27 @@ static BBUDebuggerTuckAway *sharedPlugin;
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+#pragma mark - Menu item stuffs
+
+- (NSString *)titleForMenuItem
+{
+    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
+    
+    if (status) {
+        return @"Disable Debug Window Auto Hide";
+    }
+    
+    return @"Enable Debug Window Auto Hide";
+}
+
+- (void)toggleEnabledStatus
+{
+    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
+    [[NSUserDefaults standardUserDefaults] setBool:!status forKey:kBBUDebuggerTuckAwayEnabledStatus];
+    
+    [_toggleMenuItem setTitle:[self titleForMenuItem]];
 }
 
 @end
