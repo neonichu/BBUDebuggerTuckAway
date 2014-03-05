@@ -63,16 +63,23 @@ static BBUDebuggerTuckAway *sharedPlugin;
 - (void)initMenu
 {
     NSMenuItem *viewMenuItem = [[NSApp mainMenu] itemWithTitle:@"View"];
+    NSMenuItem *debugMenuItem = nil;
     
     if (viewMenuItem) {
-        [[viewMenuItem submenu] addItem:[NSMenuItem separatorItem]];
+        debugMenuItem = [[viewMenuItem submenu] itemWithTitle:@"Debug Area"];
+    }
+    
+    if (debugMenuItem) {
+        [[debugMenuItem submenu] addItem:[NSMenuItem separatorItem]];
         
-       _toggleMenuItem = [[NSMenuItem alloc] initWithTitle:[self titleForMenuItem]
+       _toggleMenuItem = [[NSMenuItem alloc] initWithTitle:@"Hide When Typing In Editor"
                                                     action:@selector(toggleEnabledStatus)
                                              keyEquivalent:@""];
         
         [_toggleMenuItem setTarget:self];
-        [[viewMenuItem submenu] addItem:_toggleMenuItem];
+        [[debugMenuItem submenu] addItem:_toggleMenuItem];
+        
+        [self changeMenuItemState];
     }
 
 }
@@ -112,15 +119,16 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 #pragma mark - Menu item stuffs
 
-- (NSString *)titleForMenuItem
+- (void)changeMenuItemState
 {
     BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
     
+    NSCellStateValue state = NSOffState;
     if (status) {
-        return @"Disable Debug Window Auto Hide";
+        state = NSOnState;
     }
     
-    return @"Enable Debug Window Auto Hide";
+    [_toggleMenuItem setState:state];
 }
 
 - (void)toggleEnabledStatus
@@ -128,7 +136,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
     BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
     [[NSUserDefaults standardUserDefaults] setBool:!status forKey:kBBUDebuggerTuckAwayEnabledStatus];
     
-    [_toggleMenuItem setTitle:[self titleForMenuItem]];
+    [self changeMenuItemState];
 }
 
 @end
