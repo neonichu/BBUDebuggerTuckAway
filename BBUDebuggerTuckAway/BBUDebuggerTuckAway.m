@@ -17,8 +17,11 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 @interface NSObject (ShutUpWarnings)
 
+-(void)_didStart;
+-(void)_willExpire;
 -(id)editorArea;
 -(BOOL)showDebuggerArea;
+-(BOOL)supportsDebugSession;
 -(void)toggleDebuggerVisibility:(id)arg;
 -(NSArray*)workspaceWindowControllers;
 
@@ -26,6 +29,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 @interface BBUDebuggerTuckAway ()
 
+@property (nonatomic, assign) BOOL debugging;
 @property (nonatomic, strong) NSMenuItem *toggleMenuItem;
 
 @end
@@ -50,6 +54,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
 {
     if (self = [super init]) {
         [self performSelector:@selector(swizzleDidChangeTextInSourceTextView) withObject:nil afterDelay:5.0];
+        [self performSelector:@selector(swizzleDebuggerSession) withObject:nil afterDelay:5.0];
         
         if ([[NSUserDefaults standardUserDefaults] objectForKey:kBBUDebuggerTuckAwayEnabledStatus] == nil) {
             [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kBBUDebuggerTuckAwayEnabledStatus];
@@ -84,6 +89,29 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 }
 
+- (void)swizzleDebuggerSession
+{
+    [[objc_getClass("IDELaunchSession") new] yl_swizzleSelector:@selector(_didStart) withBlock:^void(id sself) {
+        if ([sself supportsDebugSession]) {
+            self.debugging = YES;
+        }
+
+        [sself yl_performSelector:@selector(_didStart)
+                    returnAddress:NULL
+                argumentAddresses:NULL];
+    }];
+
+    [[objc_getClass("IDELaunchSession") new] yl_swizzleSelector:@selector(_willExpire) withBlock:^void(id sself) {
+        if ([sself supportsDebugSession]) {
+            self.debugging = NO;
+        }
+
+        [sself yl_performSelector:@selector(_willExpire)
+                    returnAddress:NULL
+                argumentAddresses:NULL];
+    }];
+}
+
 - (void)swizzleDidChangeTextInSourceTextView
 {
     [[objc_getClass("DVTSourceTextView") new] yl_swizzleSelector:@selector(didChangeText)
@@ -100,7 +128,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
 {
     BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
 
-    if (status) {
+    if (status && !self.debugging) {
         for (NSWindowController *workspaceWindowController in [objc_getClass("IDEWorkspaceWindowController")
                                                                workspaceWindowControllers])
         {
