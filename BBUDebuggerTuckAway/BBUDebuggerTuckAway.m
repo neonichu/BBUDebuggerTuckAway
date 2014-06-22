@@ -8,8 +8,8 @@
 
 #import <objc/runtime.h>
 
+#import "Aspects.h"
 #import "BBUDebuggerTuckAway.h"
-#import "NSObject+YOLO.h"
 
 #define kBBUDebuggerTuckAwayEnabledStatus @"kBBUDebuggerTuckAwayEnabledStatus"
 
@@ -91,37 +91,24 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 - (void)swizzleDebuggerSession
 {
-    [[objc_getClass("IDELaunchSession") new] yl_swizzleSelector:@selector(_didStart) withBlock:^void(id sself) {
-        if ([sself supportsDebugSession]) {
+    [objc_getClass("IDELaunchSession") aspect_hookSelector:@selector(_didStart) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+        if ([info.instance supportsDebugSession]) {
             self.debugging = YES;
         }
-
-        [sself yl_performSelector:@selector(_didStart)
-                    returnAddress:NULL
-                argumentAddresses:NULL];
-    }];
-
-    [[objc_getClass("IDELaunchSession") new] yl_swizzleSelector:@selector(_willExpire) withBlock:^void(id sself) {
-        if ([sself supportsDebugSession]) {
+    } error:nil];
+    
+    [objc_getClass("IDELaunchSession") aspect_hookSelector:@selector(_willExpire) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+        if ([info.instance supportsDebugSession]) {
             self.debugging = NO;
         }
-
-        [sself yl_performSelector:@selector(_willExpire)
-                    returnAddress:NULL
-                argumentAddresses:NULL];
-    }];
+    } error:nil];
 }
 
 - (void)swizzleDidChangeTextInSourceTextView
 {
-    [[objc_getClass("DVTSourceTextView") new] yl_swizzleSelector:@selector(didChangeText)
-                                                       withBlock:^void(id sself) {
-                                                           [self toggleDebuggersIfNeeded];
-                                                           
-                                                           [sself yl_performSelector:@selector(didChangeText)
-                                                                       returnAddress:NULL
-                                                                   argumentAddresses:NULL];
-                                                       }];
+    [objc_getClass("DVTSourceTextView") aspect_hookSelector:@selector(didChangeText) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+        [self toggleDebuggersIfNeeded];
+    } error:nil];
 }
 
 - (void)toggleDebuggersIfNeeded

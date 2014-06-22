@@ -7,16 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		860E54EB18AE8CDA00CA8BBB /* NSObject+YOLO.m in Sources */ = {isa = PBXBuildFile; fileRef = 860E54EA18AE8CDA00CA8BBB /* NSObject+YOLO.m */; };
 		86E0A715188DB16700BC71FD /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86E0A714188DB16700BC71FD /* AppKit.framework */; };
 		86E0A717188DB16700BC71FD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86E0A716188DB16700BC71FD /* Foundation.framework */; };
 		86E0A71D188DB16700BC71FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 86E0A71B188DB16700BC71FD /* InfoPlist.strings */; };
 		86E0A720188DB16700BC71FD /* BBUDebuggerTuckAway.m in Sources */ = {isa = PBXBuildFile; fileRef = 86E0A71F188DB16700BC71FD /* BBUDebuggerTuckAway.m */; };
+		A1CADDBA195703C4006F4BF3 /* Aspects.m in Sources */ = {isa = PBXBuildFile; fileRef = A1CADDB9195703C4006F4BF3 /* Aspects.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		860E54E918AE8CDA00CA8BBB /* NSObject+YOLO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+YOLO.h"; path = "contrib/NSObject+YOLO.h"; sourceTree = SOURCE_ROOT; };
-		860E54EA18AE8CDA00CA8BBB /* NSObject+YOLO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+YOLO.m"; path = "contrib/NSObject+YOLO.m"; sourceTree = SOURCE_ROOT; };
 		86E0A711188DB16700BC71FD /* BBUDebuggerTuckAway.xcplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BBUDebuggerTuckAway.xcplugin; sourceTree = BUILT_PRODUCTS_DIR; };
 		86E0A714188DB16700BC71FD /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		86E0A716188DB16700BC71FD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -25,6 +23,8 @@
 		86E0A71E188DB16700BC71FD /* BBUDebuggerTuckAway.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BBUDebuggerTuckAway.h; sourceTree = "<group>"; };
 		86E0A71F188DB16700BC71FD /* BBUDebuggerTuckAway.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BBUDebuggerTuckAway.m; sourceTree = "<group>"; };
 		86E0A721188DB16700BC71FD /* BBUDebuggerTuckAway-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BBUDebuggerTuckAway-Prefix.pch"; sourceTree = "<group>"; };
+		A1CADDB8195703C4006F4BF3 /* Aspects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Aspects.h; path = contrib/Aspects.h; sourceTree = SOURCE_ROOT; };
+		A1CADDB9195703C4006F4BF3 /* Aspects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Aspects.m; path = contrib/Aspects.m; sourceTree = SOURCE_ROOT; };
 		ACD2257DC9E44767B02E1E09 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -71,10 +71,10 @@
 		86E0A718188DB16700BC71FD /* BBUDebuggerTuckAway */ = {
 			isa = PBXGroup;
 			children = (
+				A1CADDB8195703C4006F4BF3 /* Aspects.h */,
+				A1CADDB9195703C4006F4BF3 /* Aspects.m */,
 				86E0A71E188DB16700BC71FD /* BBUDebuggerTuckAway.h */,
 				86E0A71F188DB16700BC71FD /* BBUDebuggerTuckAway.m */,
-				860E54E918AE8CDA00CA8BBB /* NSObject+YOLO.h */,
-				860E54EA18AE8CDA00CA8BBB /* NSObject+YOLO.m */,
 				86E0A719188DB16700BC71FD /* Supporting Files */,
 			);
 			path = BBUDebuggerTuckAway;
@@ -152,8 +152,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				860E54EB18AE8CDA00CA8BBB /* NSObject+YOLO.m in Sources */,
 				86E0A720188DB16700BC71FD /* BBUDebuggerTuckAway.m in Sources */,
+				A1CADDBA195703C4006F4BF3 /* Aspects.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
