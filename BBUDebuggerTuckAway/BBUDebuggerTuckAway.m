@@ -91,13 +91,13 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 - (void)swizzleDebuggerSession
 {
-    [objc_getClass("IDELaunchSession") aspect_hookSelector:@selector(_didStart) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+    [objc_getClass("IDELaunchSession") bbudebugger_aspect_hookSelector:@selector(_didStart) withOptions:AspectPositionBefore usingBlock:^(id<BBUDebugger_AspectInfo> info) {
         if ([info.instance supportsDebugSession]) {
             self.debugging = YES;
         }
     } error:nil];
     
-    [objc_getClass("IDELaunchSession") aspect_hookSelector:@selector(_willExpire) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+    [objc_getClass("IDELaunchSession") bbudebugger_aspect_hookSelector:@selector(_willExpire) withOptions:AspectPositionBefore usingBlock:^(id<BBUDebugger_AspectInfo> info) {
         if ([info.instance supportsDebugSession]) {
             self.debugging = NO;
         }
@@ -106,7 +106,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 - (void)swizzleDidChangeTextInSourceTextView
 {
-    [objc_getClass("DVTSourceTextView") aspect_hookSelector:@selector(didChangeText) withOptions:AspectPositionBefore usingBlock:^(id<AspectInfo> info) {
+    [objc_getClass("DVTSourceTextView") bbudebugger_aspect_hookSelector:@selector(didChangeText) withOptions:AspectPositionBefore usingBlock:^(id<BBUDebugger_AspectInfo> info) {
         [self toggleDebuggersIfNeeded];
     } error:nil];
 }

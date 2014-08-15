@@ -16,7 +16,7 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 };
 
 /// Opaque Aspect Token that allows to deregister the hook.
-@protocol AspectToken <NSObject>
+@protocol BBUDebugger_AspectToken <NSObject>
 
 /// Deregisters an aspect.
 /// @return YES if deregistration is successful, otherwise NO.
@@ -25,7 +25,7 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 @end
 
 /// The AspectInfo protocol is the first parameter of our block syntax.
-@protocol AspectInfo <NSObject>
+@protocol BBUDebugger_AspectInfo <NSObject>
 
 /// The instance that is currently hooked.
 - (id)instance;
@@ -54,13 +54,13 @@ typedef NS_OPTIONS(NSUInteger, AspectOptions) {
 ///
 /// @note Hooking static methods is not supported.
 /// @return A token which allows to later deregister the aspect.
-+ (id<AspectToken>)aspect_hookSelector:(SEL)selector
++ (id<BBUDebugger_AspectToken>)bbudebugger_aspect_hookSelector:(SEL)selector
                            withOptions:(AspectOptions)options
                             usingBlock:(id)block
                                  error:(NSError **)error;
 
 /// Adds a block of code before/instead/after the current `selector` for a specific instance.
-- (id<AspectToken>)aspect_hookSelector:(SEL)selector
+- (id<BBUDebugger_AspectToken>)bbudebugger_aspect_hookSelector:(SEL)selector
                            withOptions:(AspectOptions)options
                             usingBlock:(id)block
                                  error:(NSError **)error;

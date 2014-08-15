@@ -37,7 +37,7 @@ typedef struct _AspectBlock {
 	// imported variables
 } *AspectBlockRef;
 
-@interface AspectInfo : NSObject <AspectInfo>
+@interface BBUDebugger_AspectInfo : NSObject <BBUDebugger_AspectInfo>
 - (id)initWithInstance:(__unsafe_unretained id)instance invocation:(NSInvocation *)invocation;
 @property (nonatomic, unsafe_unretained, readonly) id instance;
 @property (nonatomic, strong, readonly) NSArray *arguments;
@@ -45,9 +45,9 @@ typedef struct _AspectBlock {
 @end
 
 // Tracks a single aspect.
-@interface AspectIdentifier : NSObject
+@interface BBUDebugger_AspectIdentifier : NSObject
 + (instancetype)identifierWithSelector:(SEL)selector object:(id)object options:(AspectOptions)options block:(id)block error:(NSError **)error;
-- (BOOL)invokeWithInfo:(id<AspectInfo>)info;
+- (BOOL)invokeWithInfo:(id<BBUDebugger_AspectInfo>)info;
 @property (nonatomic, assign) SEL selector;
 @property (nonatomic, strong) id block;
 @property (nonatomic, strong) NSMethodSignature *blockSignature;
@@ -56,8 +56,8 @@ typedef struct _AspectBlock {
 @end
 
 // Tracks all aspects for an object/class.
-@interface AspectsContainer : NSObject
-- (void)addAspect:(AspectIdentifier *)aspect withOptions:(AspectOptions)injectPosition;
+@interface BBUDebugger_AspectsContainer : NSObject
+- (void)addAspect:(BBUDebugger_AspectIdentifier *)aspect withOptions:(AspectOptions)injectPosition;
 - (BOOL)removeAspect:(id)aspect;
 - (BOOL)hasAspects;
 @property (atomic, copy) NSArray *beforeAspects;
@@ -65,15 +65,15 @@ typedef struct _AspectBlock {
 @property (atomic, copy) NSArray *afterAspects;
 @end
 
-@interface AspectTracker : NSObject
-- (id)initWithTrackedClass:(Class)trackedClass parent:(AspectTracker *)parent;
+@interface BBUDebugger_AspectTracker : NSObject
+- (id)initWithTrackedClass:(Class)trackedClass parent:(BBUDebugger_AspectTracker *)parent;
 @property (nonatomic, strong) Class trackedClass;
 @property (nonatomic, strong) NSMutableSet *selectorNames;
-@property (nonatomic, weak) AspectTracker *parentEntry;
+@property (nonatomic, weak) BBUDebugger_AspectTracker *parentEntry;
 @end
 
 @interface NSInvocation (Aspects)
-- (NSArray *)aspects_arguments;
+- (NSArray *)bbudebugger_aspects_arguments;
 @end
 
 #define AspectPositionFilter 0x07
@@ -91,7 +91,7 @@ static NSString *const AspectsMessagePrefix = @"aspects_";
 ///////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - Public Aspects API
 
-+ (id<AspectToken>)aspect_hookSelector:(SEL)selector
++ (id<BBUDebugger_AspectToken>)bbudebugger_aspect_hookSelector:(SEL)selector
                       withOptions:(AspectOptions)options
                        usingBlock:(id)block
                             error:(NSError **)error {
@@ -99,7 +99,7 @@ static NSString *const AspectsMessagePrefix = @"aspects_";
 }
 
 /// @return A token which allows to later deregister the aspect.
-- (id<AspectToken>)aspect_hookSelector:(SEL)selector
+- (id<BBUDebugger_AspectToken>)bbudebugger_aspect_hookSelector:(SEL)selector
                       withOptions:(AspectOptions)options
                        usingBlock:(id)block
                             error:(NSError **)error {
@@ -114,11 +114,11 @@ static id aspect_add(id self, SEL selector, AspectOptions options, id block, NSE
     NSCParameterAssert(selector);
     NSCParameterAssert(block);
 
-    __block AspectIdentifier *identifier = nil;
+    __block BBUDebugger_AspectIdentifier *identifier = nil;
     aspect_performLocked(^{
         if (aspect_isSelectorAllowedAndTrack(self, selector, options, error)) {
-            AspectsContainer *aspectContainer = aspect_getContainerForObject(self, selector);
-            identifier = [AspectIdentifier identifierWithSelector:selector object:self options:options block:block error:error];
+            BBUDebugger_AspectsContainer *aspectContainer = aspect_getContainerForObject(self, selector);
+            identifier = [BBUDebugger_AspectIdentifier identifierWithSelector:selector object:self options:options block:block error:error];
             if (identifier) {
                 [aspectContainer addAspect:identifier withOptions:options];
 
@@ -130,14 +130,14 @@ static id aspect_add(id self, SEL selector, AspectOptions options, id block, NSE
     return identifier;
 }
 
-static BOOL aspect_remove(AspectIdentifier *aspect, NSError **error) {
-    NSCAssert([aspect isKindOfClass:AspectIdentifier.class], @"Must have correct type.");
+static BOOL aspect_remove(BBUDebugger_AspectIdentifier *aspect, NSError **error) {
+    NSCAssert([aspect isKindOfClass:BBUDebugger_AspectIdentifier.class], @"Must have correct type.");
 
     __block BOOL success = NO;
     aspect_performLocked(^{
         id self = aspect.object; // strongify
         if (self) {
-            AspectsContainer *aspectContainer = aspect_getContainerForObject(self, aspect.selector);
+            BBUDebugger_AspectsContainer *aspectContainer = aspect_getContainerForObject(self, aspect.selector);
             success = [aspectContainer removeAspect:aspect];
 
             aspect_cleanupHookedClassAndSelector(self, aspect.selector);
@@ -312,7 +312,7 @@ static void aspect_cleanupHookedClassAndSelector(NSObject *self, SEL selector) {
     aspect_deregisterTrackedSelector(self, selector);
 
     // Get the aspect container and check if there are any hooks remaining. Clean up if there are not.
-    AspectsContainer *container = aspect_getContainerForObject(self, selector);
+    BBUDebugger_AspectsContainer *container = aspect_getContainerForObject(self, selector);
     if (!container.hasAspects) {
         // Destroy the container
         aspect_destroyContainerForObject(self, selector);
@@ -456,7 +456,7 @@ static void aspect_undoSwizzleClassInPlace(Class klass) {
 
 // This is a macro so we get a cleaner stack trace.
 #define aspect_invoke(aspects, info) \
-for (AspectIdentifier *aspect in aspects) {\
+for (BBUDebugger_AspectIdentifier *aspect in aspects) {\
     [aspect invokeWithInfo:info];\
     if (aspect.options & AspectOptionAutomaticRemoval) { \
         aspectsToRemove = [aspectsToRemove?:@[] arrayByAddingObject:aspect]; \
@@ -470,9 +470,9 @@ static void __ASPECTS_ARE_BEING_CALLED__(__unsafe_unretained NSObject *self, SEL
     SEL originalSelector = invocation.selector;
 	SEL aliasSelector = aspect_aliasForSelector(invocation.selector);
     invocation.selector = aliasSelector;
-    AspectsContainer *objectContainer = objc_getAssociatedObject(self, aliasSelector);
-    AspectsContainer *classContainer = aspect_getContainerForClass(object_getClass(self), aliasSelector);
-    AspectInfo *info = [[AspectInfo alloc] initWithInstance:self invocation:invocation];
+    BBUDebugger_AspectsContainer *objectContainer = objc_getAssociatedObject(self, aliasSelector);
+    BBUDebugger_AspectsContainer *classContainer = aspect_getContainerForClass(object_getClass(self), aliasSelector);
+    BBUDebugger_AspectInfo *info = [[BBUDebugger_AspectInfo alloc] initWithInstance:self invocation:invocation];
     NSArray *aspectsToRemove = nil;
 
     // Before hooks.
@@ -518,20 +518,20 @@ static void __ASPECTS_ARE_BEING_CALLED__(__unsafe_unretained NSObject *self, SEL
 #pragma mark - Aspect Container Management
 
 // Loads or creates the aspect container.
-static AspectsContainer *aspect_getContainerForObject(NSObject *self, SEL selector) {
+static BBUDebugger_AspectsContainer *aspect_getContainerForObject(NSObject *self, SEL selector) {
     NSCParameterAssert(self);
     SEL aliasSelector = aspect_aliasForSelector(selector);
-    AspectsContainer *aspectContainer = objc_getAssociatedObject(self, aliasSelector);
+    BBUDebugger_AspectsContainer *aspectContainer = objc_getAssociatedObject(self, aliasSelector);
     if (!aspectContainer) {
-        aspectContainer = [AspectsContainer new];
+        aspectContainer = [BBUDebugger_AspectsContainer new];
         objc_setAssociatedObject(self, aliasSelector, aspectContainer, OBJC_ASSOCIATION_RETAIN);
     }
     return aspectContainer;
 }
 
-static AspectsContainer *aspect_getContainerForClass(Class klass, SEL selector) {
+static BBUDebugger_AspectsContainer *aspect_getContainerForClass(Class klass, SEL selector) {
     NSCParameterAssert(klass);
-    AspectsContainer *classContainer = nil;
+    BBUDebugger_AspectsContainer *classContainer = nil;
     do {
         classContainer = objc_getAssociatedObject(klass, selector);
         if (classContainer.hasAspects) break;
@@ -593,12 +593,12 @@ static BOOL aspect_isSelectorAllowedAndTrack(NSObject *self, SEL selector, Aspec
         NSMutableDictionary *swizzledClassesDict = aspect_getSwizzledClassesDict();
         Class currentClass = [self class];
         do {
-            AspectTracker *tracker = swizzledClassesDict[currentClass];
+            BBUDebugger_AspectTracker *tracker = swizzledClassesDict[currentClass];
             if ([tracker.selectorNames containsObject:selectorName]) {
 
                 // Find the topmost class for the log.
                 if (tracker.parentEntry) {
-                    AspectTracker *topmostEntry = tracker.parentEntry;
+                    BBUDebugger_AspectTracker *topmostEntry = tracker.parentEntry;
                     while (topmostEntry.parentEntry) {
                         topmostEntry = topmostEntry.parentEntry;
                     }
@@ -614,11 +614,11 @@ static BOOL aspect_isSelectorAllowedAndTrack(NSObject *self, SEL selector, Aspec
 
         // Add the selector as being modified.
         currentClass = klass;
-        AspectTracker *parentTracker = nil;
+        BBUDebugger_AspectTracker *parentTracker = nil;
         do {
-            AspectTracker *tracker = swizzledClassesDict[currentClass];
+            BBUDebugger_AspectTracker *tracker = swizzledClassesDict[currentClass];
             if (!tracker) {
-                tracker = [[AspectTracker alloc] initWithTrackedClass:currentClass parent:parentTracker];
+                tracker = [[BBUDebugger_AspectTracker alloc] initWithTrackedClass:currentClass parent:parentTracker];
                 swizzledClassesDict[(id<NSCopying>)currentClass] = tracker;
             }
             [tracker.selectorNames addObject:selectorName];
@@ -637,7 +637,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
     NSString *selectorName = NSStringFromSelector(selector);
     Class currentClass = [self class];
     do {
-        AspectTracker *tracker = swizzledClassesDict[currentClass];
+        BBUDebugger_AspectTracker *tracker = swizzledClassesDict[currentClass];
         if (tracker) {
             [tracker.selectorNames removeObject:selectorName];
             if (tracker.selectorNames.count == 0) {
@@ -649,9 +649,9 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 
 @end
 
-@implementation AspectTracker
+@implementation BBUDebugger_AspectTracker
 
-- (id)initWithTrackedClass:(Class)trackedClass parent:(AspectTracker *)parent {
+- (id)initWithTrackedClass:(Class)trackedClass parent:(BBUDebugger_AspectTracker *)parent {
     if (self = [super init]) {
         _trackedClass = trackedClass;
         _parentEntry = parent;
@@ -737,7 +737,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 #undef WRAP_AND_RETURN
 }
 
-- (NSArray *)aspects_arguments {
+- (NSArray *)bbudebugger_aspects_arguments {
 	NSMutableArray *argumentsArray = [NSMutableArray array];
 	for (NSUInteger idx = 2; idx < self.methodSignature.numberOfArguments; idx++) {
 		[argumentsArray addObject:[self aspect_argumentAtIndex:idx] ?: NSNull.null];
@@ -750,7 +750,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - AspectIdentifier
 
-@implementation AspectIdentifier
+@implementation BBUDebugger_AspectIdentifier
 
 + (instancetype)identifierWithSelector:(SEL)selector object:(id)object options:(AspectOptions)options block:(id)block error:(NSError **)error {
     NSCParameterAssert(block);
@@ -760,9 +760,9 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
         return nil;
     }
 
-    AspectIdentifier *identifier = nil;
+    BBUDebugger_AspectIdentifier *identifier = nil;
     if (blockSignature) {
-        identifier = [AspectIdentifier new];
+        identifier = [BBUDebugger_AspectIdentifier new];
         identifier.selector = selector;
         identifier.block = block;
         identifier.blockSignature = blockSignature;
@@ -772,7 +772,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
     return identifier;
 }
 
-- (BOOL)invokeWithInfo:(id<AspectInfo>)info {
+- (BOOL)invokeWithInfo:(id<BBUDebugger_AspectInfo>)info {
     NSInvocation *blockInvocation = [NSInvocation invocationWithMethodSignature:self.blockSignature];
     NSInvocation *originalInvocation = info.originalInvocation;
     NSUInteger numberOfArguments = self.blockSignature.numberOfArguments;
@@ -824,13 +824,13 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - AspectsContainer
 
-@implementation AspectsContainer
+@implementation BBUDebugger_AspectsContainer
 
 - (BOOL)hasAspects {
     return self.beforeAspects.count > 0 || self.insteadAspects.count > 0 || self.afterAspects.count > 0;
 }
 
-- (void)addAspect:(AspectIdentifier *)aspect withOptions:(AspectOptions)options {
+- (void)addAspect:(BBUDebugger_AspectIdentifier *)aspect withOptions:(AspectOptions)options {
     NSParameterAssert(aspect);
     NSUInteger position = options&AspectPositionFilter;
     switch (position) {
@@ -865,7 +865,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 ///////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark - AspectInfo
 
-@implementation AspectInfo
+@implementation BBUDebugger_AspectInfo
 
 @synthesize arguments = _arguments;
 
@@ -882,7 +882,7 @@ static void aspect_deregisterTrackedSelector(id self, SEL selector) {
 - (NSArray *)arguments {
     // Lazily evaluate arguments, boxing is expensive.
     if (!_arguments) {
-        _arguments = self.originalInvocation.aspects_arguments;
+        _arguments = self.originalInvocation.bbudebugger_aspects_arguments;
     }
     return _arguments;
 }
