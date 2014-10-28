@@ -12,6 +12,7 @@
 #import "BBUDebuggerTuckAway.h"
 
 #define kBBUDebuggerTuckAwayEnabledStatus @"kBBUDebuggerTuckAwayEnabledStatus"
+#define kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus @"kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus"
 
 static BBUDebuggerTuckAway *sharedPlugin;
 
@@ -31,6 +32,7 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 @property (nonatomic, assign) BOOL debugging;
 @property (nonatomic, strong) NSMenuItem *toggleMenuItem;
+@property (nonatomic, strong) NSMenuItem *hideWhenDebugging;
 
 @end
 
@@ -57,9 +59,14 @@ static BBUDebuggerTuckAway *sharedPlugin;
         [self performSelector:@selector(swizzleDebuggerSession) withObject:nil afterDelay:5.0];
         
         if ([[NSUserDefaults standardUserDefaults] objectForKey:kBBUDebuggerTuckAwayEnabledStatus] == nil) {
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kBBUDebuggerTuckAwayEnabledStatus];
+          [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kBBUDebuggerTuckAwayEnabledStatus];
         }
-        
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus] == nil) {
+          [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
+        }
+      
+        [[NSUserDefaults standardUserDefaults] synchronize];
+      
         [self initMenu];
     }
     return self;
@@ -75,16 +82,28 @@ static BBUDebuggerTuckAway *sharedPlugin;
     }
     
     if (debugMenuItem) {
+      
+        NSMenu *submenu = [[NSMenu alloc] initWithTitle:@"Hide When Typing In Editor"];
+        _toggleMenuItem = [[NSMenuItem alloc] initWithTitle:@"Enabled" action:@selector(toggleEnabledStatus) keyEquivalent:@""];
+        _hideWhenDebugging = [[NSMenuItem alloc] initWithTitle:@"Hide When Debbuging" action:@selector(toggleHideWhenDebuggingStatus) keyEquivalent:@""];
+      
+        _toggleMenuItem.target = self;
+        _hideWhenDebugging.target = self;
+      
+        [submenu addItem:_toggleMenuItem];
+        [submenu addItem:_hideWhenDebugging];
+
         [[debugMenuItem submenu] addItem:[NSMenuItem separatorItem]];
         
-       _toggleMenuItem = [[NSMenuItem alloc] initWithTitle:@"Hide When Typing In Editor"
-                                                    action:@selector(toggleEnabledStatus)
+        NSMenuItem *menuItem = [[NSMenuItem alloc] initWithTitle:@"Hide When Typing In Editor"
+                                                    action:NULL
                                              keyEquivalent:@""];
+        [menuItem setSubmenu:submenu];
+
+        [[debugMenuItem submenu] addItem:menuItem];
         
-        [_toggleMenuItem setTarget:self];
-        [[debugMenuItem submenu] addItem:_toggleMenuItem];
-        
-        [self changeMenuItemState];
+      [self changeMenuItemState:_toggleMenuItem forKey:kBBUDebuggerTuckAwayEnabledStatus];
+      [self changeMenuItemState:_hideWhenDebugging forKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
     }
 
 }
@@ -114,8 +133,10 @@ static BBUDebuggerTuckAway *sharedPlugin;
 - (void)toggleDebuggersIfNeeded
 {
     BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
+    BOOL hideWhenDebugging = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
 
-    if (status && !self.debugging) {
+  
+    if (status && (hideWhenDebugging || !self.debugging)) {
         for (NSWindowController *workspaceWindowController in [objc_getClass("IDEWorkspaceWindowController")
                                                                workspaceWindowControllers])
         {
@@ -134,24 +155,30 @@ static BBUDebuggerTuckAway *sharedPlugin;
 
 #pragma mark - Menu item stuffs
 
-- (void)changeMenuItemState
+- (void)changeMenuItemState:(NSMenuItem *)menuItem forKey:(NSString *)key
 {
-    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
-    
-    NSCellStateValue state = NSOffState;
-    if (status) {
-        state = NSOnState;
-    }
-    
-    [_toggleMenuItem setState:state];
+    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:key];
+    [menuItem setState:(status ? NSOnState : NSOffState)];
 }
 
 - (void)toggleEnabledStatus
 {
     BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledStatus];
     [[NSUserDefaults standardUserDefaults] setBool:!status forKey:kBBUDebuggerTuckAwayEnabledStatus];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     
-    [self changeMenuItemState];
+    [self changeMenuItemState:_toggleMenuItem forKey:kBBUDebuggerTuckAwayEnabledStatus];
+}
+
+- (void)toggleHideWhenDebuggingStatus
+{
+    BOOL status = [[NSUserDefaults standardUserDefaults] boolForKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
+    status = !status;
+    
+    [[NSUserDefaults standardUserDefaults] setBool:status forKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    [self changeMenuItemState:_hideWhenDebugging forKey:kBBUDebuggerTuckAwayEnabledHideWhenDebuggingStatus];
 }
 
 @end
