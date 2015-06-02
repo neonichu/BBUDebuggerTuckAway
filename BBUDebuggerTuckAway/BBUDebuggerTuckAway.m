@@ -67,7 +67,9 @@ static BBUDebuggerTuckAway *sharedPlugin;
       
         [[NSUserDefaults standardUserDefaults] synchronize];
       
-        [self initMenu];
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [self initMenu];
+        }];
     }
     return self;
 }
