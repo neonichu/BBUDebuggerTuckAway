@@ -116,7 +116,7 @@
 		86E0A709188DB16700BC71FD /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Boris Bügling";
 			};
 			buildConfigurationList = 86E0A70C188DB16700BC71FD /* Build configuration list for PBXProject "BBUDebuggerTuckAway" */;
@@ -187,6 +187,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -249,6 +250,7 @@
 				GCC_PREFIX_HEADER = "BBUDebuggerTuckAway/BBUDebuggerTuckAway-Prefix.pch";
 				INFOPLIST_FILE = "BBUDebuggerTuckAway/BBUDebuggerTuckAway-Info.plist";
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.vu0.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = xcplugin;
 			};
@@ -264,6 +266,7 @@
 				GCC_PREFIX_HEADER = "BBUDebuggerTuckAway/BBUDebuggerTuckAway-Prefix.pch";
 				INFOPLIST_FILE = "BBUDebuggerTuckAway/BBUDebuggerTuckAway-Info.plist";
 				INSTALL_PATH = "/Library/Application Support/Developer/Shared/Xcode/Plug-ins";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.vu0.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = xcplugin;
 			};
