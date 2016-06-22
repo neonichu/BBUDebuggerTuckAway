@@ -1,3 +1,7 @@
+![project deprecated](https://img.shields.io/badge/project%20status-deprecated-red.svg)
+
+This project is deprecated in favor of [Editor Extensions](https://developer.apple.com/videos/play/wwdc2016/414/) support in Xcode 8+.
+
 Xcode plugin for auto-hiding the debugger once you start typing in the source code editor.
 
 ![](plugin.gif)
